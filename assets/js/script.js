@@ -1,41 +1,9 @@
-
-/*
-displayTheDay {
-
-    create timeblocks for 8AM - 5PM
-    
-    get current time using Moment
-
-    if time block is in the past, change styling of row 
-    if time block is in the present, change styling of row
-    if time block is in the future, chang estyling of row
-
-    get from local storage
- }
- 
-jquery listener for clicking description {
-    
-    change p to textarea
-
-}
-
-jquery listener for clicking save button {
-    get value of closest text area
-    swap the textarea elemeent for a p
-    call save to local storage method
-}
-
-save to local storage {
-
-}
-
-get from local storage {
-
-}
-
-*/
+var tasks = [];
 
 var displayDay = function () {
+
+    var currentDay = moment().format("dddd MMMM D, YYYY");
+    $("#currentDay").html(currentDay);
 
     var hourToDisplay = moment("8AM", "ha");
     var thisHour = moment().startOf('hour');
@@ -44,9 +12,9 @@ var displayDay = function () {
     for (var i = 0; i < 10; i++) {
         // dynamically create each timeblock row
         var timeblock = $("<div>").addClass("row");
-        var hour = $("<div>").addClass("col-1 hour").html(hourToDisplay.format("ha"));
-        var task = $("<div>").addClass("col description");
-        var save = $("<div>").addClass("col-1 saveBtn").append($("<i>").addClass("fas fa-lock"));
+        var hour = $("<div>").addClass("col-1 hour " + hourToDisplay.format("ha")).html(hourToDisplay.format("ha"));
+        var task = $("<div>").addClass("col description").append($("<p>"));
+        var save = $("<div>").addClass("col-1 saveBtn d-flex align-items-center justify-content-center").append($("<i>").addClass("fas fa-lock"));
 
         // add styling for past/present/future
         if (hourToDisplay.isBefore(thisHour)) {
@@ -67,4 +35,61 @@ var displayDay = function () {
         hourToDisplay.add(1, 'hours');
     }
 
+    loadTasks();
 }
+
+var loadTasks = function () {
+    // get local storage and put it into the tasks array
+    tasks = JSON.parse(localStorage.getItem("tasks"));
+
+    // this loops through each item in the tasks array
+    // then finds the class that matches the value of the timeblock property
+    // then looks for the corresponding description p and sets it to the value of the description property
+    for (var i = 0; i < tasks.length; i++) {
+       $("." + tasks[i].timeblock).parent().children(".description").children("p").text(tasks[i].description);       
+    };
+};
+
+var saveTasks = function () {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+};
+
+// description was clicked
+$(".container").on("click", ".description", function () {
+    // get current text of p element
+    var text = $(this)
+        .text()
+        .trim();
+
+    // replace p element with a new textarea
+    var textInput = $("<textarea>").val(text);
+    $(this).children("p").replaceWith(textInput);
+
+    // auto focus new element
+    textInput.trigger("focus");
+});
+
+// save button was clicked
+$(".container").on("click", ".saveBtn", function () {
+    // we need to raverse the DOM to get the value of textarea and the time value
+    var text = $(this).parent().children(".description").children("textarea").val();
+    var time = $(this).parent().children(".hour").text();
+
+    // recreate p element
+    var descriptionP = $("<p>")
+        .text(text);
+
+    // replace textarea with new content
+    $(this).parent().children(".description").children("textarea").replaceWith(descriptionP);
+
+    // save in tasks array
+    tasks.push({
+        timeblock: time,
+        description: text,
+    });
+
+    // save tasks to local storage
+    saveTasks();
+});
+
+displayDay();
