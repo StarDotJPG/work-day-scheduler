@@ -46,6 +46,14 @@ var loadTasks = function () {
     // get local storage and put it into the tasks array
     tasks = JSON.parse(localStorage.getItem("tasks"));
 
+    // if nothing in localStorage, create a new object to track all task status arrays
+    if (!tasks) {
+        tasks = [];
+        // since there's nothing in local storage and the array is empty, 
+        // just return now and don't try to update the page elements
+        return; 
+    }
+
     // this loops through each item in the tasks array
     // then finds the class that matches the value of the timeblock property
     // then looks for the corresponding description p and sets it to the value of the description property
